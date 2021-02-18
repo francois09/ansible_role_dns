@@ -1,0 +1,23 @@
+127.0.0.1 localhost
+127.0.1.1 {{ ansible_hostname }}.{{ bind__internal_domain }} {{ ansible_hostname }}
+
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+
+{% if bind__internal_network %}
+{%   for ip in hostvars[inventory_hostname]['ansible_all_ipv4_addresses']|ipaddr(network_internal_network|default(bind__internal_network)) %}
+{{ ip }} {{ ansible_hostname }}.{{ bind__internal_domain }} {{ ansible_hostname }}
+{%   endfor %}
+{% endif %}
+
+{% for grp in bind__hosts_additional_entries.keys()|sort %}
+{%   if grp in group_names or grp == "all" %}
+{%     for hostname, ip in bind__hosts_additional_entries[grp] | dictsort %}
+{{ ip }} {{ hostname }}
+{%     endfor %}
+{%   endif %}
+{% endfor %}

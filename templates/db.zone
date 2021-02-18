@@ -1,0 +1,51 @@
+;
+; BIND data file for {{ bind__internal_domain }}
+;
+$TTL    {{ bind__default_ttl }}
+@   IN  SOA {{ ansible_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
+             {{ ansible_date_time.epoch }}     ; Serial
+             {{ bind__default_refresh }}     ; Refresh
+             {{ bind__default_retry }}     ; Retry
+             {{ bind__default_expire }}     ; Expire
+             {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
+
+;DNS server information
+@   IN  NS  {{ ansible_hostname }}.{{ bind__internal_domain }}.        ;server hostname
+{% set statics = bind__static_ips %}
+{% set cnames = bind__cnames|default({}) %}
+{% set declared = [] %}
+
+{% if statics %}
+; STATIC A RECORDS
+{%   for host, ip in statics|dictsort %}
+{{ '%-24s'|format(host) }} IN A {{ ip }}
+{%     set _ = declared.append(host) %}
+{%   endfor %}
+
+{% endif %}
+; DYNAMIC HOSTNAME A RECORDS
+{% for host in groups[bind__dynamic_group]|sort %}
+{%   if 'ansible_hostname' in hostvars[host] and hostvars[host]['ansible_hostname'] not in declared %}
+{%     if 'ansible_all_ipv4_addresses' in hostvars[host].keys() %}
+{%       for ip in hostvars[host]['ansible_all_ipv4_addresses']|ipaddr(bind__internal_network) %}
+{{ '%-24s'|format(hostvars[host]['ansible_hostname']) }} IN A {{ ip }}
+{%         set _ = declared.append(hostvars[host]['ansible_hostname']) %}
+{%       endfor %}
+{%     else %}
+; {{ host }} UNKNOWN  no ipv4 !!
+{%     endif %}
+{%   endif %}
+{% endfor %}
+
+{% if cnames %}
+; CNAMES
+{%   for alias, host in cnames|dictsort %}
+{%     if alias not in declared %}
+{{ '%-24s'|format(alias) }} IN CNAME {{ host }}
+{%     else %}
+; ERROR {{ alias }} get both a CNAME ({{ host }}) and A records !
+; CNAME is not applied, need to fix inventory
+{%     endif %}
+{%   endfor %}
+
+{% endif %}

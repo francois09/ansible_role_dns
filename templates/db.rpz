@@ -1,0 +1,27 @@
+;
+; BIND data file for response policy zone
+;
+$TTL    {{ bind__default_ttl }}
+@   IN  SOA {{ ansible_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
+             {{ ansible_date_time.epoch }}     ; Serial
+             {{ bind__default_refresh }}     ; Refresh
+             {{ bind__default_retry }}     ; Retry
+             {{ bind__default_expire }}     ; Expire
+             {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
+
+;DNS server information
+@   IN  NS  {{ ansible_hostname }}.{{ bind__internal_domain }}.        ;server hostname
+{% if bind__rpz_static is defined %}
+
+; STATIC A RECORDS
+{%   for host, ip in bind__rpz_static|dictsort %}
+{{ '%-24s'|format(host) }} IN A {{ ip }}
+{%   endfor %}
+{% endif %}
+{% if bind__rpz_cname is defined %}
+
+; CNAMES
+{%   for alias, host in bind__rpz_cname|dictsort %}
+{{ '%-24s'|format(alias) }} IN CNAME {{ host }}
+{%   endfor %}
+{% endif %}

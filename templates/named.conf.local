@@ -1,0 +1,96 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+acl trusted {
+{% if bind__internal_network is defined and bind__internal_network %}
+    {{ bind__internal_network }};
+{% endif %}
+{% for trusted in bind__trusted_networks|sort %}
+    {{ trusted }};
+{% endfor %}
+    localhost;
+};
+
+{% if bind__internal_domain is defined %}
+zone "{{ bind__internal_domain }}" {
+       type master;
+       file "{{ bind__zone_directory }}/db.{{ bind__internal_domain }}";
+       forwarders {};
+       allow-transfer { trusted; };
+};
+
+{% endif %}
+{% if bind__internal_network is defined and bind__internal_network %}
+// Internal network reverse
+zone "{% for octet in bind__internal_network.split('.')[:3]|reverse %}{{ octet }}.{% endfor %}in-addr.arpa" {
+        type master;
+        file "{{ bind__zone_directory }}/db.{{ bind__internal_network|replace('/', '-') }}.rev";
+};
+
+{% endif %}
+{% if bind__known_networks is defined %}
+// "Known" networks reverse
+{%   for network in bind__known_networks %}
+{%     if network != bind__internal_network %}
+zone "{% for octet in network.split('.')[:3]|reverse %}{{ octet }}.{% endfor %}in-addr.arpa" {
+        type master;
+        file "{{ bind__zone_directory }}/db.{{ network|replace('/', '-') }}.rev";
+};
+
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% for zone, forwarders in bind__zone_forwarding_for|dictsort %}
+zone "{{ zone }}" {
+       type forward;
+       forward only;
+       forwarders {
+{%   for forwarder in forwarders|sort %}
+         {{ forwarder }};
+{%   endfor %}
+    };
+};
+
+{% endfor %}
+{% if bind__rpz_static is defined or bind__rpz_cname is defined %}
+// Reply Policy Zone (For faking replies)
+zone "{{ bind__rpz_name }}" {
+    type master;
+    file "{{ bind__rpz_zone_file }}";
+    allow-query { none; };
+};
+
+{% endif %}
+{% if bind__logging %}
+logging {
+        channel default_file {
+                file "/var/log/bind/named.log" versions 2 size 10m;
+                severity {{ bind__logging_named_severity }};
+                print-time yes;
+                print-severity yes;
+                print-category yes;
+        };
+        channel queries_file {
+                file "/var/log/bind/queries.log" versions 2 size 10m;
+                severity {{ bind__logging_queries_severity }};
+                print-time yes;
+                print-severity yes;
+                print-category yes;
+        };
+        category default { default_file; };
+        category queries { queries_file; };
+};
+{% else %}
+logging {
+        category default { null; };
+};
+
+{% endif %}
+statistics-channels {
+  inet 127.0.0.1 port 8080 allow { 127.0.0.1; };
+};

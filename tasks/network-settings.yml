@@ -1,0 +1,32 @@
+---
+- name: dhclient resolvconf hook
+  copy:
+    src: nodnsupdate
+    dest: /etc/dhcp/dhclient-enter-hooks.d/nodnsupdate
+  notify:
+    - kill dhclients
+    - restart networking service
+
+- name: check if resolv.conf is symlink
+  stat:
+    path: /etc/resolv.conf
+  register: resolv_conf_link
+
+- name: delete resolv.conf if symlink
+  file:
+    path: /etc/resolv.conf
+    state: absent
+  when:
+  - resolv_conf_link.stat.islnk is defined
+  - resolv_conf_link.stat.islnk
+
+- name: resolv.conf
+  template:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+
+- name: etc hosts
+  template:
+    src: etc_hosts
+    dest: /etc/hosts
+...

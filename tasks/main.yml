@@ -1,0 +1,14 @@
+---
+- import_tasks: debian.yml
+  when:
+    - bind__install
+
+- import_tasks: bind.yml
+  when:
+    - bind__install
+    - bind__configure
+
+- import_tasks: network-settings.yml
+  when:
+    - bind__client_configure
+...

@@ -1,0 +1,16 @@
+---
+- name: Restart bind9
+  service:
+    name: bind9
+    state: restarted
+
+- name: Reload bind9
+  shell: rndc reload
+
+- name: kill dhclients
+  shell: pkill dhclient || true
+
+- name: restart networking service
+  service:
+    state: restarted
+    name: networking

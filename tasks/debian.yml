@@ -1,0 +1,7 @@
+---
+- name: APT | Install packages
+  apt:
+    name: "{{ bind__default_packages }}"
+    update_cache: yes
+    state: present
+  when: bind__install
