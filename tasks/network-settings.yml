@@ -6,11 +6,15 @@
   notify:
     - kill dhclients
     - restart networking service
+  when:
+  - bind__resolv_conf_configure
 
 - name: check if resolv.conf is symlink
   stat:
     path: /etc/resolv.conf
   register: resolv_conf_link
+  when:
+  - bind__resolv_conf_configure
 
 - name: delete resolv.conf if symlink
   file:
@@ -19,11 +23,14 @@
   when:
   - resolv_conf_link.stat.islnk is defined
   - resolv_conf_link.stat.islnk
+  - bind__resolv_conf_configure
 
 - name: resolv.conf
   template:
     src: resolv.conf
     dest: /etc/resolv.conf
+  when:
+  - bind__resolv_conf_configure
 
 - name: etc hosts
   template:

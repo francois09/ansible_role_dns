@@ -2,6 +2,7 @@
 bind__install: False
 bind__configure: False
 bind__client_configure: False
+bind__resolv_conf_configure: True
 
 # defaults packages for bind
 bind__default_packages:
