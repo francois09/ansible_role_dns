@@ -4,7 +4,7 @@
     src: nodnsupdate
     dest: /etc/dhcp/dhclient-enter-hooks.d/nodnsupdate
   notify:
-    - kill dhclients
+    # - kill dhclients
     - restart networking service
   when:
   - bind__resolv_conf_configure
