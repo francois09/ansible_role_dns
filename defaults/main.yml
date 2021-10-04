@@ -12,6 +12,7 @@ bind__default_packages:
 # Useful for named.conf.options
 bind__trusted_networks: []
 bind__zone_directory: "/var/cache/bind"
+bind__log_directory: "/var/log/named"
 bind__dnssec_enable: True
 bind__dnssec_validation: "auto"
 bind__forwarders: []

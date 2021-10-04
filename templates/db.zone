@@ -3,7 +3,7 @@
 ;
 $TTL    {{ bind__default_ttl }}
 @   IN  SOA {{ ansible_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
-             {{ ansible_date_time.epoch }}     ; Serial
+             {{ ansible_date_time.epoch|int * 2 }}     ; Serial
              {{ bind__default_refresh }}     ; Refresh
              {{ bind__default_retry }}     ; Retry
              {{ bind__default_expire }}     ; Expire
@@ -44,7 +44,6 @@ $TTL    {{ bind__default_ttl }}
 {{ '%-24s'|format(alias) }} IN CNAME {{ host }}
 {%     else %}
 ; ERROR {{ alias }} get both a CNAME ({{ host }}) and A records !
-; CNAME is not applied, need to fix inventory
 {%     endif %}
 {%   endfor %}
 

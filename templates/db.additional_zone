@@ -1,0 +1,35 @@
+;
+; BIND data file for {{ item.name }}
+;
+$TTL    {{ bind__default_ttl }}
+@   IN  SOA {{ bind__external_hostname }}.{{ bind__external_domain }}. root.{{ bind__external_domain }}. (
+             {{ ansible_date_time.epoch|int * 2 }}     ; Serial
+             {{ bind__default_refresh }}     ; Refresh
+             {{ bind__default_retry }}     ; Retry
+             {{ bind__default_expire }}     ; Expire
+             {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
+
+;DNS server information
+@   IN  NS  {{ bind__external_hostname }}.{{ bind__external_domain }}.        ;server hostname
+
+{% if 'root_ip' in item %}
+; Root domain resolution
+{{ '%-24s'|format(' ') }} IN A {{ item.root_ip }}
+
+{% endif %}
+{% if 'records' in item %}
+{%   for recordtype,recordlist in item.records.items() %}
+; Type {{ recordtype|upper }} records
+{%     for name, value in recordlist.items() %}
+{%       if value is not string %}
+{%         for val in value %}
+{{ '%-24s'|format(name) }} IN {{ recordtype|upper }} {{ val }}
+{%         endfor %}
+{%       else %}
+{{ '%-24s'|format(name) }} IN {{ recordtype|upper }} {{ value }}
+{%       endif %}
+{%     endfor %}
+
+{%   endfor %}
+{% endif %}
+
