@@ -69,14 +69,14 @@ zone "{{ bind__rpz_name }}" {
 {% if bind__logging %}
 logging {
         channel default_file {
-                file "/var/log/named/named.log" versions 2 size 10m;
+                file "{{ bind__log_directory }}/named.log" versions 2 size 10m;
                 severity {{ bind__logging_named_severity }};
                 print-time yes;
                 print-severity yes;
                 print-category yes;
         };
         channel queries_file {
-                file "/var/log/named/queries.log" versions 2 size 10m;
+                file "{{ bind__log_directory }}/queries.log" versions 2 size 10m;
                 severity {{ bind__logging_queries_severity }};
                 print-time yes;
                 print-severity yes;

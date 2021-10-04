@@ -1,7 +1,7 @@
 ---
 - name: create bind log dir
   file:
-    path: /var/log/bind
+    path: "{{ bind__log_directory }}"
     state: directory
     owner: bind
     group: bind
@@ -35,6 +35,15 @@
     mode: 0644
   notify: Reload bind9
   when: bind__internal_domain is defined
+
+- name: bind additional domain zone
+  template:
+    src: db.additional_zone
+    dest: '{{ bind__zone_directory }}/db.{{ item.name }}'
+    mode: 0644
+  notify: Reload bind9
+  with_items: "{{ bind__additional_domains }}"
+  when: bind__additional_domains is defined
 
 - name: bind response policy zone file
   template:
