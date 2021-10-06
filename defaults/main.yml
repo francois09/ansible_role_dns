@@ -27,11 +27,11 @@ bind__logging_queries_severity: warning
 bind__zone_forwarding_for: {}
 
 # Useful for zone files
-bind__default_ttl: 604800
-bind__default_negative_cache_ttl: 604800
-bind__default_refresh: 604800
-bind__default_retry: 86400
-bind__default_expire: 2419200
+bind__default_refresh: 21600 # 6 hours before a slave request for an update
+bind__default_retry: 900 # 15 mins between slave retry in case of fail
+bind__default_expire: 1209600 # 2 weeks before slave is no more authoritative with answers (time the main could be down)
+bind__default_negative_cache_ttl: 900 # 15 mins of a NXDOMAIN can be cached by others DNS
+bind__default_ttl: 7200 # 2 hours before refresh (ask main) needed
 
 bind__static_ips: {}
 bind__dynamic_group: all

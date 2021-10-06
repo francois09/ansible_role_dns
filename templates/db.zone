@@ -2,7 +2,7 @@
 ; BIND data file for {{ bind__internal_domain }}
 ;
 $TTL    {{ bind__default_ttl }}
-@   IN  SOA {{ ansible_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
+@   IN  SOA {{ bind__internal_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
              {{ ansible_date_time.epoch|int * 2 }}     ; Serial
              {{ bind__default_refresh }}     ; Refresh
              {{ bind__default_retry }}     ; Retry
@@ -10,7 +10,7 @@ $TTL    {{ bind__default_ttl }}
              {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
 
 ;DNS server information
-@   IN  NS  {{ ansible_hostname }}.{{ bind__internal_domain }}.        ;server hostname
+@   IN  NS  {{ bind__internal_hostname }}.{{ bind__internal_domain }}.        ;server hostname
 {% set statics = bind__static_ips %}
 {% set cnames = bind__cnames|default({}) %}
 {% set declared = [] %}
@@ -18,7 +18,13 @@ $TTL    {{ bind__default_ttl }}
 {% if statics %}
 ; STATIC A RECORDS
 {%   for host, ip in statics|dictsort %}
+{%     if ip is not string %}
+{%       for val in ip %}
+{{ '%-24s'|format(host) }} IN A {{ val }}
+{%       endfor %}
+{%     else %}
 {{ '%-24s'|format(host) }} IN A {{ ip }}
+{%     endif %}
 {%     set _ = declared.append(host) %}
 {%   endfor %}
 
