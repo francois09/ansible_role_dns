@@ -25,6 +25,17 @@ zone "{{ bind__internal_domain }}" {
 };
 
 {% endif %}
+{% if bind__additional_domains is defined %}
+{%   for zone in bind__additional_domains %}
+zone "{{ zone.name }}" {
+       type master;
+       file "{{ bind__zone_directory }}/db.{{ zone.name }}";
+       forwarders {};
+       allow-transfer { trusted; };
+};
+
+{%   endfor %}
+{% endif %}
 {% if bind__internal_network is defined and bind__internal_network %}
 // Internal network reverse
 zone "{% for octet in bind__internal_network.split('.')[:3]|reverse %}{{ octet }}.{% endfor %}in-addr.arpa" {
