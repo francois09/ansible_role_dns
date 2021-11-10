@@ -3,7 +3,7 @@
 ;
 $TTL    {{ bind__default_ttl }}
 @   IN  SOA {{ bind__external_hostname }}.{{ bind__external_domain }}. root.{{ bind__external_domain }}. (
-             {{ ansible_date_time.epoch|int * 2 }}     ; Serial
+             {{ bind__serialnum }}     ; Serial
              {{ bind__default_refresh }}     ; Refresh
              {{ bind__default_retry }}     ; Retry
              {{ bind__default_expire }}     ; Expire
@@ -14,7 +14,13 @@ $TTL    {{ bind__default_ttl }}
 
 {% if 'root_ip' in item %}
 ; Root domain resolution
+{% if item.root_ip is not string %}
+{%   for rip in item.root_ip %}
+{{ '%-24s'|format(' ') }} IN A {{ rip }}
+{%   endfor %}
+{% else %}
 {{ '%-24s'|format(' ') }} IN A {{ item.root_ip }}
+{% endif %}
 
 {% endif %}
 {% if 'records' in item %}

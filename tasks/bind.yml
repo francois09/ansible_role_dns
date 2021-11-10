@@ -28,6 +28,12 @@
     mode: 0644
   notify: Restart bind9
 
+# This computation assumes delay is less than 100ms between hosts (it's dirty!)
+# to propagate same serial number through hosts.
+- name: Compute Serial number
+  set_fact:
+    bind__serialnum: "{{ ( ansible_date_time.epoch|int / 100 )|int * 200 }}"
+
 - name: bind internal domain zone
   template:
     src: db.zone
