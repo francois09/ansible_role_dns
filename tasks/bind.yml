@@ -30,9 +30,9 @@
 
 # This computation assumes delay is less than 10s between hosts (it's dirty!)
 # to propagate same serial number through hosts.
-- name: Compute Serial number
-  set_fact:
-    bind__serialnum: "{{ ( ansible_date_time.epoch|int / 10 )|int * 20 }}"
+# - name: Compute Serial number
+#   set_fact:
+#     bind__serialnum: "{{ ( ansible_date_time.epoch|int / 10 )|int * 20 }}"
 
 - name: bind internal domain zone
   template:
