@@ -1,0 +1,3 @@
+---
+bind__serialnum: "{{ ( ansible_date_time.epoch|int / 10 )|int * 20 }}"
+
