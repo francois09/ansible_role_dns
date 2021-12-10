@@ -1,13 +1,7 @@
 ;
 ; BIND data file for {{ item.name }}
 ;
-$TTL    {{ bind__default_ttl }}
-@   IN  SOA {{ bind__external_hostname }}.{{ bind__external_domain }}. root.{{ bind__external_domain }}. (
-             {{ bind__serialnum }}     ; Serial
-             {{ bind__default_refresh }}     ; Refresh
-             {{ bind__default_retry }}     ; Retry
-             {{ bind__default_expire }}     ; Expire
-             {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
+$INCLUDE db.{{ item.name }}.serial
 
 ;DNS server information
 @   IN  NS  {{ bind__external_hostname }}.{{ bind__external_domain }}.        ;server hostname

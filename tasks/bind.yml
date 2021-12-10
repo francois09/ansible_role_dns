@@ -40,7 +40,18 @@
     dest: '{{ bind__zone_directory }}/db.{{ bind__internal_domain }}'
     mode: 0644
   notify: Reload bind9
+  register: internal_domain_zone
   when: bind__internal_domain is defined
+
+- name: bind internal domain zone serial
+  template:
+    src: db.zone.serial
+    dest: '{{ bind__zone_directory }}/db.{{ bind__internal_domain }}.serial'
+    mode: 0644
+  notify: Reload bind9
+  when:
+    - bind__internal_domain is defined
+    - internal_domain_zone is changed
 
 - name: bind additional domain zone
   template:
@@ -48,8 +59,20 @@
     dest: '{{ bind__zone_directory }}/db.{{ item.name }}'
     mode: 0644
   notify: Reload bind9
+  register: additional_zone
   with_items: "{{ bind__additional_domains }}"
   when: bind__additional_domains is defined
+
+- name: bind additional domain zone
+  template:
+    src: db.additional_zone
+    dest: '{{ bind__zone_directory }}/db.{{ item.name }}.serial'
+    mode: 0644
+  notify: Reload bind9
+  with_items: "{{ bind__additional_domains }}"
+  when:
+    - bind__additional_domains is defined
+    - additional_zone is changed
 
 - name: bind response policy zone file
   template:
@@ -57,8 +80,19 @@
     dest: '{{ bind__rpz_zone_file }}'
     mode: 0644
   notify: Reload bind9
+  register: rpz_zone_file
   when:
     - bind__rpz_static is defined or bind__rpz_cname is defined
+
+- name: bind response policy zone file serial
+  template:
+    src: db.rpz.serial
+    dest: '{{ bind__rpz_zone_file }}.serial'
+    mode: 0644
+  notify: Reload bind9
+  when:
+    - bind__rpz_static is defined or bind__rpz_cname is defined
+    - rpz_zone_file is changed
 
 - name: bind response policy zone deletion
   file:
@@ -78,6 +112,19 @@
     - bind__internal_network != None
     - bind__known_networks is not defined or bind__internal_network not in bind__known_networks
   notify: Reload bind9
+  register: db_rev
+
+- name: bind internal domain reverse zones serial
+  template:
+    src: db.rev.serial
+    dest: "{{ bind__zone_directory }}/db.{{ bind__internal_network|replace('/', '-') }}.rev.serial"
+    mode: 0644
+  when:
+    - bind__internal_network is defined
+    - bind__internal_network != None
+    - bind__known_networks is not defined or bind__internal_network not in bind__known_networks
+    - db_rev is changed
+  notify: Reload bind9
 
 - name: bind known domains reverse zones (may contain internal network)
   template:
@@ -85,6 +132,19 @@
     dest: "{{ bind__zone_directory }}/db.{{ item|replace('/', '-') }}.rev"
     mode: 0644
   with_items: "{{ bind__known_networks }}"
+  register: known_rev
   when:
     - bind__known_networks is defined and bind__known_networks != None
+  notify: Reload bind9
+
+- name: bind known domains reverse zones (may contain internal network) serial
+  template:
+    src: db.known.rev.serial
+    dest: "{{ bind__zone_directory }}/db.{{ item|replace('/', '-') }}.rev.serial"
+    mode: 0644
+  with_items: "{{ bind__known_networks }}"
+  when:
+    - bind__known_networks is defined
+    - bind__known_networks != None
+    - known_rev is changed
   notify: Reload bind9
