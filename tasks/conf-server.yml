@@ -28,12 +28,6 @@
     mode: 0644
   notify: Restart bind9
 
-# This computation assumes delay is less than 10s between hosts (it's dirty!)
-# to propagate same serial number through hosts.
-# - name: Compute Serial number
-#   set_fact:
-#     bind__serialnum: "{{ ( ansible_date_time.epoch|int / 10 )|int * 20 }}"
-
 - name: bind internal domain zone
   template:
     src: db.zone
@@ -63,16 +57,31 @@
   with_items: "{{ bind__additional_domains }}"
   when: bind__additional_domains is defined
 
-- name: bind additional domain zone
+# - name: Debug additional zone serial
+#   debug:
+#     var: additional_zone
+
+# - name: Debug additional zone serial DETAILED
+#   debug:
+#     msg: "Additional zone name: {{ entry.item.name }} is changed?: {{ entry.changed }}"
+#   loop: "{{ additional_zone.results|from_yaml|list }}"
+#   loop_control:
+#     loop_var: entry
+#     label: "{{ entry.item.name }}"
+
+- name: bind additional domain zone serial
   template:
-    src: db.additional_zone
-    dest: '{{ bind__zone_directory }}/db.{{ item.name }}.serial'
+    src: db.additional_zone.serial
+    dest: '{{ bind__zone_directory }}/db.{{ entry.item.name }}.serial'
     mode: 0644
   notify: Reload bind9
-  with_items: "{{ bind__additional_domains }}"
+  loop: "{{ additional_zone.results|from_yaml|list }}"
+  loop_control:
+    loop_var: entry
   when:
     - bind__additional_domains is defined
     - additional_zone is changed
+    - entry.changed
 
 - name: bind response policy zone file
   template:
@@ -140,11 +149,14 @@
 - name: bind known domains reverse zones (may contain internal network) serial
   template:
     src: db.known.rev.serial
-    dest: "{{ bind__zone_directory }}/db.{{ item|replace('/', '-') }}.rev.serial"
+    dest: "{{ bind__zone_directory }}/db.{{ entry.name|replace('/', '-') }}.rev.serial"
     mode: 0644
-  with_items: "{{ bind__known_networks }}"
+  loop: "{{ known_rev.results|from_yaml|list }}"
+  loop_control:
+    loop_var: entry
   when:
     - bind__known_networks is defined
     - bind__known_networks != None
     - known_rev is changed
+    - entry.changed
   notify: Reload bind9

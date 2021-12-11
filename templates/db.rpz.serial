@@ -1,3 +1,4 @@
+; BIND serial file for response policy zone {{ bind__rpz_name }}
 $TTL    {{ bind__default_ttl }}
 @   IN  SOA {{ bind__internal_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
              {{ bind__serialnum }}     ; Serial
