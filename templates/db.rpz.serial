@@ -1,0 +1,8 @@
+; BIND serial file for response policy zone {{ bind__rpz_name }}
+$TTL    {{ bind__default_ttl }}
+@   IN  SOA {{ bind__internal_hostname }}.{{ bind__internal_domain }}. root.{{ bind__internal_domain }}. (
+             {{ bind__serialnum }}     ; Serial
+             {{ bind__default_refresh }}     ; Refresh
+             {{ bind__default_retry }}     ; Retry
+             {{ bind__default_expire }}     ; Expire
+             {{ bind__default_negative_cache_ttl }} )   ; Negative Cache TTL
