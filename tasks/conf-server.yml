@@ -149,7 +149,7 @@
 - name: bind known domains reverse zones (may contain internal network) serial
   template:
     src: db.known.rev.serial
-    dest: "{{ bind__zone_directory }}/db.{{ entry.name|replace('/', '-') }}.rev.serial"
+    dest: "{{ bind__zone_directory }}/db.{{ entry.item|replace('/', '-') }}.rev.serial"
     mode: 0644
   loop: "{{ known_rev.results|from_yaml|list }}"
   loop_control:
