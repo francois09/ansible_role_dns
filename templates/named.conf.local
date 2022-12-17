@@ -32,7 +32,13 @@ zone "{{ zone.name }}" {
        file "{{ bind__zone_directory }}/db.{{ zone.name }}";
        forwarders {};
        allow-transfer { trusted; };
+{%     if zone.type is defined and zone.type == "dynamic" %}
+       allow-update { key {{ zone.name }}; };
+{%     endif %}
 };
+{%     if zone.type is defined and zone.type == "dynamic" %}
+include "/etc/bind/key_{{ zone.name }}.conf";
+{%     endif %}
 
 {%   endfor %}
 {% endif %}
