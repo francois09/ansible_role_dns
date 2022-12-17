@@ -1,0 +1,8 @@
+; BIND serial file for {{ item.item.name }}
+$TTL    {{ item.item.ttl|default(bind__default_ttl) }}
+@   IN  SOA {{ bind__external_hostname }}.{{ bind__external_domain }}. root.{{ bind__external_domain }}. (
+             {{ bind__serialnum }}     ; Serial
+             {{ item.item.refresh|default(bind__default_refresh) }}     ; Refresh
+             {{ item.item.retry|default(bind__default_retry) }}     ; Retry
+             {{ item.item.expire|default(bind__default_expire) }}     ; Expire
+             {{ item.item.negative_cache_ttl|default(bind__default_negative_cache_ttl) }} )   ; Negative Cache TTL

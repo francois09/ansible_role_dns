@@ -47,6 +47,33 @@
     - bind__internal_domain is defined
     - internal_domain_zone is changed
 
+# Loop on dynamic domain files to check if file is present
+- name: bind dynamic additional domain zone entries already exist
+  stat:
+    path: '{{ bind__zone_directory }}/db.{{ item.name }}'
+  register: dynamic_additional_zone_present
+  with_items: "{{ bind__additional_domains }}"
+  check_mode: no
+  when:
+    - bind__additional_domains is defined
+    - item.type|default('static') == 'dynamic'
+
+# If not exists, create the zone file
+- name: bind additional zone dynamic first creation
+  template:
+    src: db.dynamic_additional_zone
+    dest: '{{ bind__zone_directory }}/db.{{ item.item.name }}'
+    mode: 0644
+  notify: Reload bind9
+  register: dynamic_additional_zone
+  loop: "{{ dynamic_additional_zone_present.results|from_yaml|list }}"
+  loop_control:
+    loop_var: item
+    label: "{{ item.item.name }}"
+  when:
+    - item.skipped is not defined
+    - item.stat is defined and not item.stat.exists
+
 - name: bind additional domain zone
   template:
     src: db.additional_zone
@@ -55,19 +82,21 @@
   notify: Reload bind9
   register: additional_zone
   with_items: "{{ bind__additional_domains }}"
-  when: bind__additional_domains is defined
+  when:
+    - bind__additional_domains is defined
+    - item.type|default('static') == 'static'
 
-# - name: Debug additional zone serial
-#   debug:
-#     var: additional_zone
-
-# - name: Debug additional zone serial DETAILED
-#   debug:
-#     msg: "Additional zone name: {{ entry.item.name }} is changed?: {{ entry.changed }}"
-#   loop: "{{ additional_zone.results|from_yaml|list }}"
-#   loop_control:
-#     loop_var: entry
-#     label: "{{ entry.item.name }}"
+- name: bind additional domain dynamic keys
+  template:
+    src: key_additional_zone
+    dest: '/etc/bind/key_{{ item.name }}.conf'
+    owner: root
+    group: bind
+    mode: 0640
+  notify: Reload bind9
+  # register: additional_zone
+  with_items: "{{ bind__additional_domains }}"
+  when: bind__additional_domains is defined and item.type is defined and item.type == "dynamic"
 
 - name: bind additional domain zone serial
   template:
@@ -82,6 +111,20 @@
     - bind__additional_domains is defined
     - additional_zone is changed
     - entry.changed
+
+- name: bind dynamic additional domain zone serial
+  template:
+    src: db.dynamic_additional_zone.serial
+    dest: '{{ bind__zone_directory }}/db.{{ item.item.name }}.serial'
+    mode: 0644
+  notify: Reload bind9
+  loop: "{{ dynamic_additional_zone_present.results|from_yaml|list }}"
+  loop_control:
+    loop_var: item
+    label: "{{ item.item.name }}"
+  when:
+    - item.skipped is not defined
+    - item.stat is defined and not item.stat.exists
 
 - name: bind response policy zone file
   template:
