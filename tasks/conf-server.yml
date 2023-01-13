@@ -47,6 +47,28 @@
     - bind__internal_domain is defined
     - internal_domain_zone is changed
 
+#
+# Kludge for dynamic updates
+#
+- name: dynamic checker file
+  template:
+    src: ip_check
+    dest: "/usr/local/bin/ip_check_{{ item.domain }}"
+    mode: 0755
+    owner: root
+    group: root
+  with_items: "{{ bind__dynamic_checker }}"
+  when:
+    - bind__dynamic_checker is defined
+
+- name: dynamic checker cron
+  template:
+    src: ip_check_cron
+    dest: /etc/cron.d/ip_check
+    mode: 0644
+  when:
+    - bind__dynamic_checker is defined
+
 # Loop on dynamic domain files to check if file is present
 - name: bind dynamic additional domain zone entries already exist
   stat:

@@ -1,0 +1,20 @@
+#!/bin/bash
+# Dynamic ip checker for {{ item.domain }}
+
+set -e
+old_ip=$(dig +short a {{ item.domain }} @{{ item.ns }})
+new_ip=$(curl -s ipconfig.io)
+if [ "$old_ip" != "$new_ip" ]
+then
+    echo "IP changed: new IP=${new_ip}"
+    nsupdate -v <<EOF
+server {{ item.server }} {{ item.port }}
+zone {{ item.domain }}
+key {{ item.domain_key_algorithm }}:{{ item.domain }} {{ item.domain_key_secret }}
+update delete {{ item.domain }}
+update add {{ item.domain }} 600 IN A $new_ip
+update delete \*.{{ item.domain }}
+update add \*.{{ item.domain }} 600 IN A $new_ip
+send
+EOF
+fi

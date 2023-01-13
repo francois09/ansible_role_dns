@@ -1,0 +1,10 @@
+#
+# cron-jobs for ip_check
+#
+
+MAILTO=root
+
+# Check if IP changed, and try to change on external DNS
+{% for item in bind__dynamic_checker %}
+*/10 * * * *	root if [ -x /usr/local/bin/ip_check_{{ item.domain }} ]; then /usr/local/bin/ip_check_{{ item.domain }}; fi
+{% endfor %}
