@@ -4,6 +4,7 @@
 set -e
 old_ip=$(dig +short a {{ item.domain }} @{{ item.ns }})
 new_ip=$(curl -s {{ item.ipconfig_url }})
+[ "${new_ip#error code:}" != "${new_ip}" ] && exit
 if [ "$old_ip" != "$new_ip" ]
 then
     echo "IP changed: new IP=${new_ip}"
