@@ -1,4 +1,11 @@
 ---
+- name: dhclient enter hook directory creation
+  file:
+    path: /etc/dhcp/dhclient-enter-hooks.d
+    state: directory
+  when:
+  - bind__resolv_conf_configure
+
 - name: dhclient resolvconf hook
   copy:
     src: nodnsupdate
