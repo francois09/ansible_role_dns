@@ -6,6 +6,16 @@
 // organization
 //include "/etc/bind/zones.rfc1918";
 
+acl trusted_recursion {
+{% if bind__internal_trusted_network is defined and bind__internal_trusted_network %}
+    {{ bind__internal_trusted_network }};
+{% endif %}
+{% for trusted in bind__trusted_networks|sort %}
+    {{ trusted }};
+{% endfor %}
+    localhost;
+};
+
 acl trusted {
 {% if bind__internal_network is defined and bind__internal_network %}
     {{ bind__internal_network }};

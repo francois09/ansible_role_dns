@@ -30,7 +30,7 @@ options {
 	dnssec-validation {{ bind__dnssec_validation }};
 
 	allow-query     { trusted; };
-	allow-recursion { trusted; };
+	allow-recursion { trusted_recursion; };
 	auth-nxdomain no;    # conform to RFC1035
 	listen-on-v6 { any; };
 };
