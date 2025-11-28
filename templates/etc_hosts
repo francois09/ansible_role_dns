@@ -9,7 +9,7 @@ ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 
 {% if bind__internal_network %}
-{%   for ip in hostvars[inventory_hostname]['ansible_all_ipv4_addresses']|ipaddr(network_internal_network|default(bind__internal_network)) %}
+{%   for ip in hostvars[inventory_hostname]['ansible_all_ipv4_addresses']|ansible.utils.ipaddr(network_internal_network|default(bind__internal_network)) %}
 {{ ip }} {{ ansible_hostname }}.{{ bind__internal_domain }} {{ ansible_hostname }}
 {%   endfor %}
 {% endif %}
