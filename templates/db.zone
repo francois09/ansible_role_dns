@@ -27,7 +27,7 @@ $INCLUDE db.{{ bind__internal_domain }}.serial
 {% for host in groups[bind__dynamic_group]|sort %}
 {%   if 'ansible_hostname' in hostvars[host] and hostvars[host]['ansible_hostname'] not in declared %}
 {%     if 'ansible_all_ipv4_addresses' in hostvars[host].keys() %}
-{%       for ip in hostvars[host]['ansible_all_ipv4_addresses']|ipaddr(bind__internal_network) %}
+{%       for ip in hostvars[host]['ansible_all_ipv4_addresses']|ansible.utils.ipaddr(bind__internal_network) %}
 {{ '%-24s'|format(hostvars[host]['ansible_hostname']) }} IN A {{ ip }}
 {%         set _ = declared.append(hostvars[host]['ansible_hostname']) %}
 {%       endfor %}

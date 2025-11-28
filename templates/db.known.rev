@@ -11,12 +11,12 @@ $INCLUDE db.{{ item|replace('/', '-') }}.rev.serial
 ; DYNAMIC HOSTNAME RECORDS
 {% for server in groups[bind__dynamic_group|default('all')]|sort %}
 {%   if 'ansible_all_ipv4_addresses' in hostvars[server].keys() %}
-{%     for ip in hostvars[server]['ansible_all_ipv4_addresses']|ipaddr(item) %}
+{%     for ip in hostvars[server]['ansible_all_ipv4_addresses']|ansible.utils.ipaddr(item) %}
 {%       set _ = defined.append(ip.split('.')[3]) %}
 {{ '%-3s'|format(ip.split('.')[3]) }} IN PTR {{ hostvars[server]['ansible_hostname'] }}.{{ bind__internal_domain }}.
 {%     endfor %}
 {%   elif bind__static_ips is defined and server.split('.')[0] in bind__static_ips.keys() %}
-{%     if bind__static_ips[server.split('.')[0]]|ipaddr(item) %}
+{%     if bind__static_ips[server.split('.')[0]]|ansible.utils.ipaddr(item) %}
 {%       set _ = defined.append(bind__static_ips[server.split('.')[0]].split('.')[3]) %}
 {{ '%-3s'|format(bind__static_ips[server.split('.')[0]].split('.')[3]) }} IN PTR {{ server }}.
 {%     endif %}
@@ -28,7 +28,7 @@ $INCLUDE db.{{ item|replace('/', '-') }}.rev.serial
 
 ; STATIC REVERSE RECORDS
 {%   for host, ip in bind__static_reverse|dictsort %}
-{%     if ip | ipaddr(item) %}
+{%     if ip | ansible.utils.ipaddr(item) %}
 {%       if ip.split('.')[3] not in defined %}
 {%         set _ = defined.append(ip.split('.')[3]) %}
 {{ '%-3s'|format(ip.split('.')[3]) }} IN PTR {{ host }}.{{ bind__internal_domain }}.
@@ -40,7 +40,7 @@ $INCLUDE db.{{ item|replace('/', '-') }}.rev.serial
 
 ; STATIC REVERSE FROM STATIC IP RECORDS
 {%   for host, ip in bind__static_ips|dictsort %}
-{%     if ip | ipaddr(item) %}
+{%     if ip | ansible.utils.ipaddr(item) %}
 {%       if ip.split('.')[3] not in defined %}
 {%         set _ = defined.append(ip.split('.')[3]) %}
 {{ '%-3s'|format(ip.split('.')[3]) }} IN PTR {{ host }}.{{ bind__internal_domain }}.
