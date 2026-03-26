@@ -2,14 +2,14 @@
 # Dynamic ip checker for {{ item.domain }}
 
 set -e
-old_ip=$(dig +short a {{ item.domain }} @{{ item.ns }})
+old_ip=$(dig +short a {{ item.domain }} @{{ item.ns }} 2>/dev/null|egrep -v '^;;')
 new_ip=$(curl -s {{ item.ipconfig_url }})
 [ "${new_ip#error code:}" != "${new_ip}" ] && exit
 [ -z "${new_ip}" ] && exit
 [ -z "${old_ip}" ] && exit
 if [ "$old_ip" != "$new_ip" ]
 then
-    echo "IP changed: new IP=${new_ip}"
+    echo "IP changed: new IP=${new_ip} (was: ${old_ip})"
     nsupdate -v <<EOF
 server {{ item.server }} {{ item.port }}
 zone {{ item.domain }}
